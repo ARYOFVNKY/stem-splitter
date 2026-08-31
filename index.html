@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARYOFVNKY EXTRACK ACCAPELA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background-color: #1e1e1e;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    h2 { 
+      margin-bottom: 8px; 
+      color: #00e676; 
+      font-size: 1.3rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    p { font-size: 0.85rem; color: #aaa; margin-bottom: 20px; }
+    input[type="file"] { display: none; }
+    .custom-file-upload {
+      border: 2px dashed #00e676;
+      display: block;
+      padding: 15px;
+      cursor: pointer;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      color: #00e676;
+      font-weight: bold;
+    }
+    button, .download-btn {
+      background-color: #00e676;
+      color: #121212;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      width: 100%;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
+    .result { margin-top: 25px; text-align: left; }
+    .audio-group { margin-bottom: 20px; }
+    .audio-group label { display: block; font-size: 0.85rem; margin-bottom: 8px; color: #ddd; }
+    audio { width: 100%; height: 35px; margin-bottom: 8px; }
+    .download-btn {
+      background-color: #333;
+      color: #00e676;
+      border: 1px solid #00e676;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>ARYOFVNKY EXTRACK ACCAPELA</h2>
+    <p>AI Pemisah Vokal & Musik Instrumen</p>
+
+    <label for="file-input" class="custom-file-upload" id="file-label">
+      📁 Pilih File Lagu (.mp3)
+    </label>
+    <input type="file" id="file-input" accept="audio/*" onchange="updateFileName()">
+
+    <button id="process-btn" onclick="processAudio()" disabled>Mulai Pemisahan</button>
+
+    <div class="result" id="result-section" style="display: none;">
+      <hr style="border-color: #333; margin-bottom: 20px;">
+      
+      <div class="audio-group">
+        <label>🎤 Suara Vokal (Acapella)</label>
+        <audio id="vocal-player" controls></audio>
+        <a id="vocal-download" class="download-btn" download="Vokal.wav">⬇️ Unduh Vokal</a>
+      </div>
+
+      <div class="audio-group">
+        <label>🎸 Musik Instrumen (Backing Track)</label>
+        <audio id="music-player" controls></audio>
+        <a id="music-download" class="download-btn" download="Instrumen.wav">⬇️ Unduh Instrumen</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // MASUKKAN URL DARI COLAB KAMU DI SINI:
+    const SERVER_URL = "https://wise-dodos-walk.loca.lt"; 
+
+    function updateFileName() {
+      const input = document.getElementById('file-input');
+      const label = document.getElementById('file-label');
+      const btn = document.getElementById('process-btn');
+
+      if (input.files.length > 0) {
+        label.innerText = "🎵 " + input.files[0].name;
+        btn.disabled = false;
+      }
+    }
+
+    async function processAudio() {
+      const input = document.getElementById('file-input');
+      const btn = document.getElementById('process-btn');
+      const resultSection = document.getElementById('result-section');
+
+      if (input.files.length === 0) return;
+
+      btn.innerText = "Mengunggah & Memproses AI... (1-2 menit)";
+      btn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('file', input.files[0]);
+
+      try {
+        const response = await fetch(`${SERVER_URL}/separate`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Bypass-Tunnel-Reminder': 'true'
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.vocal_url && data.music_url) {
+          const vocalFullUrl = SERVER_URL + data.vocal_url;
+          const musicFullUrl = SERVER_URL + data.music_url;
+
+          document.getElementById('vocal-player').src = vocalFullUrl;
+          document.getElementById('music-player').src = musicFullUrl;
+          
+          document.getElementById('vocal-download').href = vocalFullUrl;
+          document.getElementById('music-download').href = musicFullUrl;
+
+          resultSection.style.display = "block";
+          btn.innerText = "Selesai!";
+        } else {
+          alert("Gagal memproses audio.");
+          btn.innerText = "Coba Lagi";
+          btn.disabled = false;
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Terjadi kesalahan sambungan ke server.");
+        btn.innerText = "Coba Lagi";
+        btn.disabled = false;
+      }
+    }
+  </script>
+
+</body>
+</html>
